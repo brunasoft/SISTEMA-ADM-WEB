@@ -1004,11 +1004,9 @@ function renderOrdens(){
       h('td',{}, h('span',{class:`pill ${stClass}`}, o.status||'—')),
       h('td',{}, previstoTxt + (isAtrasada(o.previsto) ? ' ⚠' : '')),
       h('td',{}, h('div',{class:'row'},[
-        h('button',{class:'btn sm programacao', onClick:()=>setOrdStatus(o.id,'Programação')},'Programação'),
-        h('button',{class:'btn sm lancar',      onClick:()=>setOrdStatus(o.id,'Em atendimento')},'Lançar'),
-        h('button',{class:'btn sm excluir',     onClick:()=>delOrdem(o.id)},'Excluir'),
-        h('button',{class:'btn sm editar',      onClick:()=>editOrdem(o.id)},'Editar'),
-      ]))
+  h('button',{class:'btn sm programacao', onClick:()=>setOrdStatus(o.id,'Programação')},'Programação'),
+  h('button',{class:'btn sm excluir',     onClick:()=>delOrdem(o.id)},'Excluir'),
+]))
     ]);
     tb.appendChild(tr);
   });
