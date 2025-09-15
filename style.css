@@ -1,0 +1,867 @@
+/* ==========================================================================
+   SOFT-ATA — style.css (COMPLETO)
+   Estrutura:
+   1) Variáveis e temas (claro/escuro)
+   2) Reset / base tipográfica e utilitários
+   3) Layout geral (header, main, grids, linhas)
+   4) Componentes (botões, chips, cards, pills, tabelas)
+   5) Header: switch de tema + hamburger + perfil (avatar)
+   6) Sidebar (menu lateral) e estados
+   7) Dashboard (cards de destaque)
+   8) Calendário (grade, lista, indicadores)
+   9) Kanban (Atendimento)
+   10) KPIs / Utilitários / Config
+   11) Modais (genéricos)
+   12) Ajustes de contraste por tema
+   ========================================================================== */
+
+
+/* ==========================================================================
+   1) VARIÁVEIS E TEMAS
+   -------------------------------------------------------------------------- */
+:root{
+  /* Cores base (tema claro) */
+  --bg:#f3f5f9;
+  --bg-grad-1:#ffffff;
+  --bg-grad-2:#eef2f7;
+
+  --panel:#ffffff;
+  --panel-2:#f7f9fc;
+  --border:#d8dee6;
+
+  --text:#0b0f14;
+  --muted:#5f6b7a;
+  --slate:#6b7280;
+
+  /* Paleta principal / Ações */
+  --primary:#16a34a;
+  --primary-2:#15803d;
+  --success:#16a34a;
+  --warning:#f59e0b;
+  --danger:#ef4444;
+  --purple:#7c3aed;
+  --cyan:#0891b2;
+  --accent:#111111;
+
+  /* Status (pills e indicadores) */
+--open:#2563eb;     /* Aberto = AZUL */
+--active:#f97316;   /* Em atendimento = LARANJA */
+--waiting:#fbbf24;  /* Aguardando = AMARELO */
+--prog:#7c3aed;     /* Programação = ROXO */
+--done:#16a34a;     /* Concluído = VERDE */
+
+  /* Superfícies / efeitos */
+  --chip:#f2f6fb;
+  --chip-border:#dbe3ee;
+  --input:#ffffff;
+  --input-border:#d8dee6;
+  --table-zebra:#fafafa;
+
+  --radius:16px;
+  --shadow:0 10px 28px rgba(15,23,42,.08);
+  --shadow-2:0 2px 12px rgba(15,23,42,.12);
+
+  /* Medidas */
+  --header-h:64px;
+}
+
+.theme-dark{
+  /* Tema escuro: maior contraste e nitidez de texto */
+  --bg:#0b0e13;
+  --bg-grad-1:#0f1218;
+  --bg-grad-2:#0b0f14;
+
+  --panel:#0f1422;
+  --panel-2:#0c111d;
+  --border:#263042;
+
+  --text:#f8fafc;
+  --muted:#cbd5e1;
+  --slate:#94a3b8;
+
+  --primary:#22c55e;
+  --primary-2:#16a34a;
+  --success:#22c55e;
+  --warning:#fbbf24;
+  --danger:#ef4444;
+  --purple:#a78bfa;
+  --cyan:#22d3ee;
+  --accent:#ffffff;
+
+  --open:#3b82f6;     /* Aberto = AZUL (tema escuro) */
+  --active:#fb923c;   /* Em atendimento = LARANJA */
+  --waiting:#fbbf24;  /* Aguardando = AMARELO */
+  --prog:#a78bfa;     /* Programação = ROXO */
+  --done:#22c55e;     /* Concluído = VERDE */
+
+  --chip:#0c121c;
+  --chip-border:#1c2432;
+  --input:#0b0f19;
+  --input-border:#2b364b;
+  --table-zebra:#0c1016;
+
+  --shadow:0 10px 25px rgba(0,0,0,.25);
+  --shadow-2:0 2px 10px rgba(0,0,0,.35);
+}
+
+
+/* ==========================================================================
+   2) RESET / BASE / UTILITÁRIOS
+   -------------------------------------------------------------------------- */
+*{ box-sizing:border-box; }
+html, body { height:100%; width:100%; }
+body{
+  margin:0;
+  background:linear-gradient(180deg,var(--bg-grad-1),var(--bg-grad-2));
+  color:var(--text);
+  font-family:Inter, ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+h1,h2,h3,h4,h5,h6{ color:var(--text); margin:0 0 6px; }
+p{ margin:0 0 10px; }
+.muted{ color:var(--muted); }
+.row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.grid{ display:grid; gap:10px; }
+.grid.cols-2{ grid-template-columns:1fr 1fr; }
+.grid.cols-3{ grid-template-columns:repeat(3,1fr); }
+.grid.cols-4{ grid-template-columns:repeat(4,1fr); }
+.grid.cols-6{ grid-template-columns:repeat(6,1fr); }
+@media (max-width:1100px){
+  .grid.cols-2,.grid.cols-3,.grid.cols-4,.grid.cols-6{ grid-template-columns:1fr; }
+}
+
+input,select,textarea{
+  width:100%;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid var(--input-border);
+  background:var(--input);
+  color:var(--text);
+  box-shadow:inset 0 1px 0 rgba(0,0,0,.02);
+}
+textarea{ min-height:80px; resize:vertical; }
+label{
+  font-size:11px; color:var(--slate); font-weight:700;
+  text-transform:uppercase; letter-spacing:.06em;
+}
+hr.sep{ border:none; height:1px; background:var(--border); margin:12px 0; }
+.clock{ font-variant-numeric:tabular-nums; font-weight:700; }
+
+
+/* ==========================================================================
+   3) LAYOUT GERAL
+   -------------------------------------------------------------------------- */
+/* Header fixo com leve blur */
+header{
+  position:sticky; top:0; z-index:50;
+  height:var(--header-h);
+  display:flex; align-items:center;
+  background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.86));
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);
+}
+.theme-dark header{
+  background:linear-gradient(180deg, rgba(14,17,24,.9), rgba(14,17,24,.7));
+}
+
+.wrap{ width:100%; padding:0 16px; }
+main{ width:100%; margin:16px 0; padding:0 16px; }
+
+/* Painéis (cartões grandes de conteúdo) */
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px;
+  box-shadow:var(--shadow);
+}
+
+
+/* ==========================================================================
+   4) COMPONENTES
+   -------------------------------------------------------------------------- */
+/* Botões base + variações */
+.btn{
+  padding:10px 14px; border-radius:12px; border:none;
+  font-weight:800; cursor:pointer; color:#fff;
+  transition:transform .06s ease, box-shadow .2s ease;
+  box-shadow:0 6px 14px rgba(0,0,0,.12);
+}
+.btn:hover{ transform:translateY(-2px); box-shadow:0 10px 20px rgba(0,0,0,.16); }
+.btn:active{ transform:translateY(0);   box-shadow:0 4px 10px  rgba(0,0,0,.1); }
+
+.btn.primary{ background:linear-gradient(135deg,var(--primary),var(--primary-2)); }
+.btn.success{ background:linear-gradient(135deg,#16a34a,#15803d); }
+.btn.warning{ background:linear-gradient(135deg,#f59e0b,#b45309); color:#111; }
+.btn.danger{  background:linear-gradient(135deg,#ef4444,#b91c1c); }
+.btn.cyan{    background:linear-gradient(135deg,#0891b2,#0e7490); }
+.btn.accent{  background:linear-gradient(135deg,#111,#333); }
+.btn.purple{  background:linear-gradient(135deg,var(--purple),#5b21b6); }
+.btn.blue{    background:linear-gradient(135deg,#3b82f6,#1d4ed8); }
+
+.btn.sm{ padding:6px 10px; font-weight:700; border-radius:10px; box-shadow:var(--shadow-2); font-size:12px; }
+.btn.ghost{ background:var(--chip); color:var(--text); border:1px solid var(--chip-border); }
+
+/* Feedback de clique universal para qualquer controle "button-like" */
+.is-clickable,
+button,
+[role="button"],
+span.btn,
+[data-act]{
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Acessibilidade: foco visível p/ itens que agem como botão */
+[role="button"]:focus-visible,
+span.btn:focus-visible,
+[data-act]:focus-visible{
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* Chips (etiquetas) */
+.chips{ display:flex; flex-wrap:wrap; gap:8px; }
+.chip{
+  padding:8px 12px; border-radius:999px; background:var(--chip);
+  border:1px solid var(--chip-border); font-size:12px; box-shadow:var(--shadow-2);
+}
+.chip.badge{ font-weight:800; }
+
+/* Cards genéricos */
+.card{
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:16px; padding:14px; display:grid; gap:10px;
+  box-shadow:var(--shadow); position:relative;
+}
+
+/* Pills de status */
+.pill{ padding:6px 10px; border-radius:999px; font-weight:900; font-size:12px; color:#fff; }
+.pill.open{    background:var(--open); }
+.pill.active{  background:var(--active); }
+.pill.waiting{ background:var(--waiting); color:#111; }
+.pill.prog{    background:var(--prog); }
+.pill.done{    background:var(--done); }
+.pill.posted{  background:var(--posted); }
+
+/* Tabelas */
+.table{ width:100%; border-collapse:separate; border-spacing:0 6px; }
+.table th{
+  color:var(--slate); font-size:12px; text-transform:uppercase; letter-spacing:.05em; padding:8px 10px;
+}
+.table td{
+  background:var(--panel); border:1px solid var(--border);
+  border-left:none; border-right:none; padding:10px;
+}
+.table tbody tr:nth-child(2n) td{ background:var(--table-zebra); }
+
+
+/* ==========================================================================
+   5) HEADER: SWITCH / HAMBURGER / PERFIL
+   -------------------------------------------------------------------------- */
+.theme-toggle{ display:flex; align-items:center; gap:12px; margin-left:auto; }
+
+/* Switch de tema */
+.switch{
+  position:relative; width:52px; height:28px; border-radius:999px;
+  background:var(--chip); border:2px solid var(--primary);
+  cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.10);
+}
+.switch:hover{ border-color:var(--primary-2); }
+.knob{
+  position:absolute; top:50%; left:3px; transform:translateY(-50%);
+  width:22px; height:22px; border-radius:999px; background:#fff;
+  transition:left .18s ease;
+}
+.theme-dark .knob{ left:27px; }
+
+/* Hamburger */
+.hamb{ display:flex; align-items:center; gap:10px; cursor:pointer; background:transparent; border:none; }
+.hamb .bars{ width:22px; height:2px; background:var(--text); position:relative; }
+.hamb .bars::before,
+.hamb .bars::after{
+  content:""; position:absolute; left:0; right:0; height:2px; background:var(--text);
+}
+.hamb .bars::before{ top:-7px; } .hamb .bars::after{ top:7px; }
+
+/* Perfil (avatar e texto no header) */
+.profile-box { display:flex; align-items:center; gap:8px; margin-left:8px; }
+.profile-btn{
+  display:flex; align-items:center; gap:10px; padding:6px 10px;
+  border-radius:12px; background:var(--panel); border:1px solid var(--border);
+  box-shadow:var(--shadow-2); cursor:pointer;
+}
+.profile-btn:hover{ box-shadow:0 8px 18px rgba(0,0,0,.12); }
+
+.avatar{
+  width:32px; height:32px; border-radius:50%;
+  object-fit:cover; object-position:center;
+  background:var(--chip); border:1px solid var(--chip-border);
+}
+.avatar.lg{ width:80px; height:80px; }
+
+.profile-meta{ display:flex; flex-direction:column; line-height:1.1; }
+.profile-name{ font-weight:800; font-size:13px; color:var(--text); }
+.profile-sector{ font-size:11px; color:var(--slate); }
+
+
+/* ==========================================================================
+   6) SIDEBAR (MENU LATERAL)
+   -------------------------------------------------------------------------- */
+.sidebar{
+  position:fixed; left:0; width:300px;
+  top:var(--header-h); height:calc(100vh - var(--header-h));
+  background:var(--panel-2); border-right:1px solid var(--border);
+  box-shadow:var(--shadow); transform:translateX(-100%);
+  transition:transform .22s ease; z-index:20; padding:16px;
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.sidebar.open{ transform:translateX(0); }
+.sidebar h2{ margin:8px 0 14px; font-size:18px; }
+
+.nav{
+  display:grid; gap:8px; overflow:auto; padding-right:6px;
+  max-height:calc(100vh - var(--header-h));
+  scrollbar-width:thin; scrollbar-color: var(--primary) transparent;
+}
+.nav::-webkit-scrollbar{ width:8px; }
+.nav::-webkit-scrollbar-thumb{ background:#3aa366; border-radius:999px; }
+.nav::-webkit-scrollbar-track{ background:transparent; }
+
+/* Botões das abas */
+.nav button{
+  width:100%; text-align:left; padding:12px 14px 12px 16px;
+  border-radius:14px; border:1px solid var(--border);
+  background:var(--panel); color:var(--text);
+  font-weight:700; box-shadow:var(--shadow-2); cursor:pointer;
+  position:relative; display:flex; align-items:center; gap:10px;
+  transition: transform .08s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+}
+.nav button::before{
+  content:""; position:absolute; left:6px; top:8px; bottom:8px; width:4px; border-radius:999px;
+  background:transparent; transition: background .18s ease;
+}
+.nav button:hover{
+  transform: translateX(2px);
+  background: rgba(22,163,74,0.06);
+  border-color: rgba(22,163,74,0.35);
+  box-shadow: 0 6px 18px rgba(0,0,0,.12);
+}
+.nav button:hover::before{ background: var(--primary); }
+.nav button:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
+
+.nav button.active{
+  background: rgba(22,163,74,0.12);
+  border:2px solid var(--primary);
+  box-shadow: inset 0 0 0 2px rgba(22,163,74,0.25), 0 2px 10px rgba(0,0,0,.18);
+  padding-left:18px;
+  margin-right:6px;
+}
+.nav button.active::before{ background: var(--primary); }
+
+/* Empurrar main quando sidebar abre */
+body.with-sidebar main{ margin-left:300px; transition:margin-left .22s ease; }
+
+
+/* ==========================================================================
+   7) DASHBOARD (CARDS)
+   -------------------------------------------------------------------------- */
+.dash-cards{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+.dashcard{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:20px; border-radius:16px; color:#fff; font-weight:900; cursor:pointer;
+  box-shadow:0 8px 22px rgba(0,0,0,.18);
+  transition:transform .08s ease, box-shadow .2s ease;
+}
+.dashcard:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(0,0,0,.22); }
+.d-abertas { background: linear-gradient(135deg, #16a34a, #15803d); }
+.d-atend   { background: linear-gradient(135deg, #f59e0b, #b45309); color:#111; }
+.theme-dark .d-atend{ color:#fff; }
+.d-prog    { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
+.d-atraso  { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+
+@media (max-width:1100px){ .dash-cards{ grid-template-columns:1fr 1fr; } }
+@media (max-width:640px){ .dash-cards{ grid-template-columns:1fr; } }
+
+
+/* ==========================================================================
+   8) CALENDÁRIO
+   -------------------------------------------------------------------------- */
+.cal{
+  margin-top:14px;
+  border:1px solid var(--border); border-radius:16px;
+  padding:16px; background:var(--panel); box-shadow:var(--shadow);
+  display:flex; flex-direction:column; align-items:center; margin-bottom:40px;
+}
+.cal-head{ display:flex; justify-content:space-between; align-items:center; width:100%; max-width:900px; }
+.cal-head .title{ font-weight:900; font-size:18px; }
+
+#calDow{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; text-align:center; width:100%; max-width:900px; margin:6px auto; }
+.cal-dow{ font-size:12px; color:var(--muted); }
+
+#calGrid{ display:grid; grid-template-columns:repeat(7,1fr); gap:10px; width:100%; max-width:900px; }
+.cal-cell{
+  background:var(--panel); border:1px solid var(--border); border-radius:14px;
+  min-height:100px; padding:8px; box-shadow:var(--shadow-2);
+  position:relative; cursor:pointer; transition: outline-color .15s ease, transform .05s ease;
+}
+.cal-day{ position:absolute; top:6px; right:8px; font-weight:800; color:var(--muted); }
+.cal-cell.has-ev { outline:2px solid rgba(22,163,74,0.35); }
+.cal-cell.selected{
+  outline:2px solid rgba(22,163,74,0.55);
+  box-shadow: inset 0 0 0 9999px rgba(22,163,74,0.09);
+}
+.cal-today{
+  outline:2px solid var(--primary);
+  background: rgba(22,163,74,0.06);
+}
+.cal-cell.other{ opacity:.85; }
+.cal-cell.other .cal-day{ color: var(--primary); font-weight:800; }
+.cal-cell:not(.other) .cal-day{ color: var(--text); font-weight:900; }
+.cal-cell:hover{ box-shadow:0 10px 22px rgba(0,0,0,.12); outline:2px solid rgba(22,163,74,0.25); }
+
+/* Indicadores de evento */
+.cal-dot{
+  position:absolute; left:10px; bottom:10px; width:8px; height:8px; border-radius:999px;
+  background: var(--primary); box-shadow: 0 0 0 3px rgba(22,163,74,0.25);
+}
+.cal-dot-count{
+  position:absolute; left:20px; bottom:6px; min-width:18px; height:18px; padding:0 6px;
+  font-size:11px; line-height:18px; text-align:center; font-weight:800; color:#fff;
+  border-radius:10px; background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  box-shadow: var(--shadow-2);
+}
+
+/* Lista acima do grid (Compromissos do dia) */
+.cal-list{
+  order:-1; width:100%; margin-bottom:28px; padding:18px;
+  border-radius:16px; background:var(--panel); border:1px solid var(--border); box-shadow:var(--shadow);
+}
+.cal-list h4{ margin:0 0 8px; font-size:16px; }
+.cal-item{
+  border:1px solid var(--border); border-radius:12px; padding:10px; background:var(--panel);
+  box-shadow:var(--shadow-2); display:flex; justify-content:space-between; align-items:center;
+}
+#calListItems > .cal-item + .cal-item{ margin-top:8px; }
+
+
+/* ==========================================================================
+   9) KANBAN (ATENDIMENTO)
+   -------------------------------------------------------------------------- */
+.kanban{ display:grid; gap:12px; grid-template-columns:repeat(5,1fr); }
+.kanban .col{
+  background:var(--panel); border:1px solid var(--border); border-radius:14px;
+  padding:10px; box-shadow:var(--shadow-2); min-height:240px;
+}
+.kanban .col h4{
+  margin:0 0 8px; font-size:14px; text-transform:uppercase; letter-spacing:.05em; color:var(--slate);
+}
+.tlist{ display:grid; gap:8px; }
+.ticket{
+  background:var(--panel); border:1px solid var(--border); border-radius:12px;
+  padding:10px; box-shadow:var(--shadow-2);
+}
+.ticket .head{ display:flex; justify-content:space-between; gap:6px; }
+.ticket .title{ font-weight:800; }
+.ticket .actions{ display:flex; gap:6px; flex-wrap:wrap; }
+
+@media (max-width:1100px){ .kanban{ grid-template-columns:1fr; } }
+
+
+/* ==========================================================================
+   10) KPIs / UTILITÁRIOS / CONFIG
+   -------------------------------------------------------------------------- */
+.kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.kpi{
+  padding:16px; border-radius:14px; background:var(--panel);
+  border:1px solid var(--border); box-shadow:var(--shadow);
+}
+.kpi h3{ margin:0 0 6px; font-size:13px; color:var(--slate); text-transform:uppercase; letter-spacing:.06em; }
+.kpi .num{ font-size:28px; font-weight:900; }
+@media (max-width:1100px){ .kpis{ grid-template-columns:1fr 1fr; } }
+
+.util-grid{ display:grid; gap:12px; grid-template-columns:1fr 1fr; }
+@media (max-width:1100px){ .util-grid{ grid-template-columns:1fr; } }
+
+.calc-grid{ display:grid; gap:12px; grid-template-columns:1fr 1fr; }
+.calc-card{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px; box-shadow:var(--shadow-2); }
+@media (max-width:1100px){ .calc-grid{ grid-template-columns:1fr; } }
+
+
+/* ==========================================================================
+   11) MODAIS (GENÉRICOS)
+   -------------------------------------------------------------------------- */
+.modal{ position:fixed; inset:0; display:block; z-index:1000; }
+.modal[hidden]{ display:none; }
+.modal__backdrop{
+  position:absolute; inset:0; background:rgba(0,0,0,.5); backdrop-filter:blur(2px);
+}
+.modal__card{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:min(900px, 95vw); background:var(--panel); color:var(--text);
+  border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:var(--shadow);
+}
+
+/* Campos bloqueados (somente leitura) quando marcado via data-ro="1" */
+.modal [data-ro="1"]{ pointer-events:none; opacity:.75; }
+
+/* Área de ações no rodapé das modais */
+.modal__actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+
+
+/* ==========================================================================
+   12) AJUSTES DE CONTRASTE / TEMA
+   -------------------------------------------------------------------------- */
+/* Inputs/chips no claro com contraste maior */
+body:not(.theme-dark) input,
+body:not(.theme-dark) select,
+body:not(.theme-dark) textarea{
+  background:#fff; border-color:#d8dee6; box-shadow:inset 0 1px 0 rgba(0,0,0,.02);
+}
+body:not(.theme-dark) .chip{ background:var(--chip); border-color:var(--chip-border); }
+
+/* Header (claro) mais opaco */
+body:not(.theme-dark) header{
+  background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.86));
+}
+
+/* Tema escuro: reforça cores de texto e bordas em componentes-chave */
+.theme-dark .sidebar{ background: var(--panel-2); border-right-color: var(--border); }
+.theme-dark .nav button{ background:var(--panel); color:var(--text); border-color:var(--border); }
+.theme-dark .nav button:hover{
+  background: rgba(34,197,94,0.20);
+  border-color: rgba(34,197,94,0.6);
+}
+.theme-dark .nav button.active{
+  background: rgba(34,197,94,0.32);
+  border:2px solid var(--primary);
+  box-shadow: inset 0 0 0 2px rgba(34,197,94,0.35), 0 2px 10px rgba(0,0,0,.28);
+}
+
+.theme-dark .table tbody tr:nth-child(2n) td{ background:#10182a; }
+.theme-dark .chip{ background:#10182a; border-color:#263042; color: var(--text); }
+.theme-dark header{ border-bottom-color:#263042; }
+
+.theme-dark input[type="date"]::-webkit-calendar-picker-indicator,
+.theme-dark input[type="time"]::-webkit-calendar-picker-indicator{ filter: invert(1); }
+
+/* ==========================================================================
+   ATENDIMENTO — cores de status, cards clicáveis e telinha (popover)
+   (COLE ESTE BLOCO NO FINAL DO ARQUIVO)
+   ========================================================================== */
+
+/* 1) Paleta de status (mapeamento solicitado)
+   - Aberto        → Azul
+   - Aguardando    → Amarelo
+   - Em atendimento→ Laranja
+   - Programação   → Roxo
+   - Concluído     → Verde
+*/
+:root{
+  --st-blue:#2563eb;     /* Aberto */
+  --st-yellow:#fbbf24;   /* Aguardando */
+  --st-orange:#f97316;   /* Em atendimento */
+  --st-purple:#7c3aed;   /* Programação */
+  --st-green:#16a34a;    /* Concluído */
+  --st-blue-2:#1d4ed8;   /* tons secundários (gradiente) */
+  --st-yellow-2:#b45309;
+  --st-orange-2:#c2410c;
+  --st-purple-2:#5b21b6;
+  --st-green-2:#15803d;
+}
+
+.theme-dark{
+  /* reforça contraste no escuro */
+  --st-blue:#3b82f6;
+  --st-blue-2:#1d4ed8;
+  --st-yellow:#fbbf24;
+  --st-yellow-2:#b45309;
+  --st-orange:#fb923c;
+  --st-orange-2:#ea580c;
+  --st-purple:#a78bfa;
+  --st-purple-2:#6d28d9;
+  --st-green:#22c55e;
+  --st-green-2:#16a34a;
+}
+
+/* Cores personalizadas para botões de fluxo */
+.btn.atendimento{ background:linear-gradient(135deg,#f97316,#ea580c); color:#fff } /* Laranja */
+.btn.aberto{      background:linear-gradient(135deg,#3b82f6,#1d4ed8) }              /* Azul */
+.btn.programacao{ background:linear-gradient(135deg,#8b5cf6,#6d28d9) }              /* Roxo */
+.btn.concluido{   background:linear-gradient(135deg,#22c55e,#15803d) }              /* Verde */
+.btn.lancar{
+  background:linear-gradient(135deg,#ec4899,#db2777);
+  color:#fff;
+}
+.btn.lancar:hover{ filter:brightness(1.05); }
+
+/* Aguardando → Amarelo (alias p/ .aguardando e .aguardar) */
+.btn.aguardando,
+.btn.aguardar{    background:linear-gradient(135deg,#fde047,#f59e0b); color:#111 }
+
+/* Editar → apenas contorno verde (sem preenchimento) */
+.btn.editar{
+  background:transparent; color:#16a34a; border:2px solid #16a34a; font-weight:800;
+}
+.btn.editar:hover{  background:rgba(22,163,74,0.10) }
+.btn.editar:active{ background:rgba(22,163,74,0.20) }
+
+/* Excluir → vermelho */
+.btn.excluir{ background:linear-gradient(135deg,#ef4444,#b91c1c); color:#fff }
+/* 3) PILLS de status (cabeçalho do card) */
+.pill.aberto{      background:var(--st-blue); }
+.pill.aguardando{  background:var(--st-yellow); color:#111; }
+.pill.atendimento{ background:var(--st-orange); }
+.pill.programacao{ background:var(--st-purple); }
+.pill.concluido{   background:var(--st-green); }
+
+/* 4) CARD clicável (ticket) — layout das novas informações */
+.ticket{
+  cursor:pointer;                                /* card inteiro clicável */
+  position:relative;
+}
+
+.ticket .head{ display:flex; justify-content:space-between; gap:6px; margin-bottom:6px; }
+.ticket .title{ font-weight:900; }
+
+.ticket .meta{ display:grid; gap:4px; margin:6px 0 8px; }
+.ticket .meta-line{ font-size:13px; color:var(--text); }
+.ticket .meta-line b{ color:var(--slate); font-weight:800; margin-right:4px; }
+
+.ticket .ps{ margin-top:6px; }
+.ticket .ps-text{
+  background:var(--panel-2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:8px;
+  min-height:38px;
+  line-height:1.35;
+}
+
+.ticket .assignee{ align-items:center; gap:8px; }
+.ticket .assignee .avatar{
+  width:26px; height:26px; border-radius:999px;
+  object-fit:cover; border:1px solid var(--chip-border);
+}
+.ticket .assignee-name{ font-size:12px; color:var(--slate); }
+
+/* Botões de ação (linha inferior do card) */
+.ticket .actions{
+  display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;
+}
+
+/* 5) Esconder o botão do status atual (JS adiciona data-status no card)
+   Ex.: <div class="ticket" data-status="aberto">…</div>
+*/
+.ticket[data-status="aberto"]      .btn.aberto{ display:none; }
+.ticket[data-status="aguardando"]  .btn.aguardando{ display:none; }
+.ticket[data-status="atendimento"] .btn.atendimento{ display:none; }
+.ticket[data-status="programacao"] .btn.programacao{ display:none; }
+.ticket[data-status="concluido"]   .btn.concluido{ display:none; }
+
+/* 6) “Reabrir” no concluído (exibe ao lado do Editar; o texto vem do JS)
+   - Estético apenas; o JS decide quando mostrar.
+*/
+.ticket[data-status="concluido"] .btn.reabrir{
+  display:inline-flex;
+}
+
+/* 7) Efeitos de hover/press para enfatizar que o card é clicável */
+.ticket:hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 20px rgba(0,0,0,.12);
+}
+.ticket:active{
+  transform:translateY(0);
+  box-shadow:var(--shadow-2);
+}
+
+/* 8) TELINHA SUSPENSA (Popover) — com X para fechar
+   - O JS renderiza dentro de #popoverRoot uma .popover posicionada.
+   - Por padrão, centralizamos; o JS pode sobrescrever "top/left" se desejar.
+*/
+.popover-root{
+  position:fixed; inset:0; z-index:1100;
+}
+.popover-root[hidden]{ display:none; }
+
+/* backdrop sutil clicável (fecha ao clicar fora via JS) */
+.popover-root::before{
+  content:""; position:absolute; inset:0;
+  background:rgba(0,0,0,.35); backdrop-filter:blur(2px);
+}
+
+/* a telinha em si */
+.popover{
+  position:absolute;                 /* pode ser alterado via JS */
+  left:50%; top:50%; transform:translate(-50%,-50%);
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  box-shadow:0 18px 40px rgba(0,0,0,.2);
+  padding:12px 14px;
+  min-width:260px;
+}
+
+/* botão X (fechar) */
+.popover__close{
+  position:absolute; top:8px; right:8px;
+  background:var(--chip); color:var(--text);
+  border:1px solid var(--chip-border);
+  border-radius:8px; padding:2px 8px; cursor:pointer;
+  box-shadow:var(--shadow-2); font-weight:800;
+}
+.popover__close:hover{ filter:brightness(.95); }
+
+.popover__content{ margin-top:18px; }
+.popover__content .btn.sm{ min-width:90px; justify-content:center; }
+
+/* 9) “Cliente selecionado” (chip informativo acima)
+   - Apenas refinamento visual para o #t_cliente_info que já existe no HTML.
+*/
+#t_cliente_info{
+  display:inline-flex; align-items:center; gap:6px;
+  font-weight:700;
+}
+
+/* 10) Ajustes responsivos finos */
+@media (max-width: 900px){
+  .ticket .ps{ grid-template-columns:1fr !important; }
+  .popover{ width: calc(100vw - 32px); }
+}
+
+/* ==========================================================================
+   Cores dos botões de STATUS (cards) — corrigido
+   Aberto=Azul | Aguardando=Amarelo (vivo) | Em atendimento=Laranja
+   Programação=Roxo | Concluído=Verde
+   ========================================================================== */
+
+/* ABERTO → azul */
+.btn.aberto{
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+}
+
+/* AGUARDANDO / AGUARDAR → AMARELO VIVO (sem marrom) */
+.btn.aguardando,
+.btn.aguardar{
+  /* antes: #fbbf24 → #b45309 (dava aspecto marrom)
+     agora: amarelo → âmbar claro */
+  background: linear-gradient(135deg, #fde047, #f59e0b);
+  color: #111;
+}
+
+/* EM ATENDIMENTO → laranja */
+.btn.atendimento{
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff;
+}
+
+/* PROGRAMAÇÃO → roxo */
+.btn.programacao{
+  background: linear-gradient(135deg, #7c3aed, #5b21b6);
+  color: #fff;
+}
+
+/* CONCLUÍDO → verde */
+.btn.concluido{
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #fff;
+}
+
+/* ===== Telinha (Popover) do atendimento — mínimos ===== */
+.popover-root{ position:fixed; inset:0; z-index:1100; }
+.popover-root[hidden]{ display:none; }
+.popover-root::before{
+  content:""; position:absolute; inset:0;
+  background:rgba(0,0,0,.35); backdrop-filter:blur(2px);
+}
+.popover{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:14px; box-shadow:0 18px 40px rgba(0,0,0,.2);
+  padding:12px 14px; min-width:320px; max-width:min(900px, 95vw);
+}
+.popover__close{
+  position:absolute; top:8px; right:8px;
+  background:var(--chip); color:var(--text);
+  border:1px solid var(--chip-border);
+  border-radius:8px; padding:2px 8px; cursor:pointer;
+  box-shadow:var(--shadow-2); font-weight:800;
+}
+.popover__content{ margin-top:18px; }
+
+/* Rosa para Lançar (caso não exista ainda) */
+.btn.pink{ background:linear-gradient(135deg,#ec4899,#db2777); color:#fff; }
+
+/* Botão Editar só contornado em verde (pedido) */
+.btn.editar{
+  background:transparent; color:#16a34a; border:2px solid #16a34a; font-weight:800;
+}
+.btn.editar:hover{  background:rgba(22,163,74,0.10); }
+.btn.editar:active{ background:rgba(22,163,74,0.20); }
+
+/* Botão Excluir vermelho (pedido) */
+.btn.excluir{ background:linear-gradient(135deg,#ef4444,#b91c1c); color:#fff; }
+
+/* Popover centralizado mais “clean” */
+.popover{
+  /* o JS centraliza com translate(-50%, -50%) */
+  max-width: min(820px, 96vw);
+  min-width: 520px;
+  padding: 16px;
+  border-radius: 16px;
+  box-shadow: 0 22px 48px rgba(0,0,0,.28);
+}
+
+/* Labels e textareas confortáveis */
+.popover label { font-weight: 800; letter-spacing: .06em; }
+.popover textarea{ min-height: 120px; }
+
+/* Em telas menores, empilha as colunas */
+@media (max-width: 900px){
+  .popover{ min-width: auto; width: calc(100vw - 32px); }
+  .popover .grid.cols-2{ grid-template-columns: 1fr; }
+}
+
+/* Exibir a data no formato BR dentro do campo */
+input[type="date"][data-br]::before {
+  content: attr(data-br);
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text);
+}
+input[type="date"][data-br] {
+  color: transparent;     /* Esconde o ISO */
+  position: relative;
+  padding-left: 44px;     /* espaço pro texto BR */
+}
+input[type="date"][data-br]::-webkit-datetime-edit,
+input[type="date"][data-br]::-webkit-inner-spin-button,
+input[type="date"][data-br]::-webkit-clear-button {
+  display: none;
+}
+
+/* Ícone do calendário fixo à direita */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 10px;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Uniformizar altura e estilo do campo de data */
+input[type="date"] {
+  height: 40px;          /* mesma altura visual dos outros inputs */
+  line-height: 1.2;
+  font-size: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--input-border);
+  background: var(--input);
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(0,0,0,.02);
+}
