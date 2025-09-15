@@ -244,6 +244,7 @@ span.btn:focus-visible,
 .pill.prog{    background:var(--prog); }
 .pill.done{    background:var(--done); }
 .pill.posted{  background:var(--posted); }
+.pill.launched { background:#2563eb; } /* ou outra cor distinta */
 
 /* Tabelas */
 .table{ width:100%; border-collapse:separate; border-spacing:0 6px; }

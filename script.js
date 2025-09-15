@@ -784,13 +784,13 @@ function createOrderFromTicket(ticketId){
   const numero   = String((state.ordens[state.ordens.length-1]?.numero || 0) + 1).padStart(3,'0');
   const previsto = ymd(new Date()); // hoje
 
-  state.ordens.push({
-    id: uid('o'),
-    numero,
-    titulo: t.titulo || `${t.codigo || ''} ${t.nome || ''}`.trim() || 'Atendimento',
-    status: 'Aberto',
-    previsto
-  });
+ state.ordens.push({
+  id: uid('o'),
+  numero,
+  titulo: t.titulo || `${t.codigo || ''} ${t.nome || ''}`.trim() || 'Atendimento',
+  status: 'Lançado',
+  previsto
+});
 
   persist();
   renderOrdens();
