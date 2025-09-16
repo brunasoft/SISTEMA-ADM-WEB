@@ -21,6 +21,48 @@
    0) HELPERS
    ========================================================================== */
 
+   async function carregarOrdensDoBanco(){
+  try{
+    const ordens = await apiGet('/api/ordens');
+    // substitui o que estiver em memória pelo que está no banco
+    state.ordens = (ordens || []).map(o => ({
+      id: o.id,
+      numero: o.numero,
+      titulo: o.titulo,
+      status: o.status || 'Lançado',
+      previsto: o.previsto || null,
+      created_at: o.created_at
+    }));
+    renderOrdens();
+  }catch(err){
+    console.warn('[DB] Falha ao carregar ordens:', err.message);
+  }
+}
+
+   // ==== Persistência em Neon (via /api/ordens) ====
+async function salvarOrdemNoBanco({ id, numero, titulo, status='Lançado', previsto=null }){
+  return apiPost('/api/ordens', { id, numero, titulo, status, previsto });
+}
+
+   // ==== HTTP helpers ====
+async function apiPost(path, data){
+  const r = await fetch(path, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(data)
+  });
+  const j = await r.json().catch(()=> ({}));
+  if (!r.ok) throw new Error(j.error || `POST ${path} falhou`);
+  return j;
+}
+
+async function apiGet(path){
+  const r = await fetch(path);
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || `GET ${path} falhou`);
+  return j;
+}
+
 /** Seletores rápidos */
 const $  = (sel, root=document) => root.querySelector(sel);
 const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
@@ -777,28 +819,45 @@ function moveTicket(id, col){
   renderKanban();
 }
 
-function createOrderFromTicket(ticketId){
+async function createOrderFromTicket(ticketId){
   const t = state.tickets.find(x => x.id === ticketId);
   if (!t) return;
 
-  const numero   = String((state.ordens[state.ordens.length-1]?.numero || 0) + 1).padStart(3,'0');
-  const previsto = ymd(new Date()); // hoje
+  // calcula o próximo número com base no MAIOR já existente
+  const maxNumero = Math.max(0, ...state.ordens.map(o => parseInt(o.numero, 10) || 0));
+  const prox = String(maxNumero + 1).padStart(3,'0');
 
-  state.ordens.push({
-    id: uid('o'),
-    numero,
+  const payload = {
+    id: 'o_' + Math.random().toString(36).slice(2,8),
+    numero: prox,
     titulo: t.titulo || `${t.codigo || ''} ${t.nome || ''}`.trim() || 'Atendimento',
     status: 'Lançado',
-    previsto
-  });
+    previsto: ymd(new Date())
+  };
 
-  // 🔴 Remover ticket da lista (sai de "Concluídos")
+  // Otimista na UI
+  state.ordens.push({...payload});
   state.tickets = state.tickets.filter(x => x.id !== ticketId);
-
   persist();
-  renderKanban();   // atualiza o quadro para sumir do Concluído
-  renderOrdens();   // atualiza tabela de Ordens
-  setTab('ordens'); // vai direto para Ordens
+  renderKanban();
+  renderOrdens();
+  setTab('ordens');
+
+  try {
+    // Persiste no Neon
+    await salvarOrdemNoBanco(payload);
+    // Sincroniza da fonte de verdade (opcional, mas recomendado)
+    await carregarOrdensDoBanco();
+  } catch (err) {
+    console.error('[DB] Erro ao salvar ordem:', err);
+    // rollback
+    state.ordens = state.ordens.filter(o => o.id !== payload.id);
+    state.tickets.push({...t, col:'concluido'});
+    persist();
+    renderKanban();
+    renderOrdens();
+    alert('Não foi possível salvar a ordem no banco. Tente novamente.');
+  }
 }
 
 function delTicket(id){
@@ -1218,19 +1277,22 @@ document.addEventListener('DOMContentLoaded', () => {
   initCalendarForm();
   initClientesForm();
   initKanbanForm();
-  initKanbanClicks();   // delegação global do Kanban
+  initKanbanClicks();
   initEditModal();
   initLaunchModal();
   initUtils();
   initCalcs();
 
-  // Render inicial de acordo com a aba
+  // Render inicial
   if (state.ui.currentTab === 'home')      renderHome();
   if (state.ui.currentTab === 'fila')      renderKanban();
   if (state.ui.currentTab === 'clientes')  renderClientes();
   if (state.ui.currentTab === 'ordens')    renderOrdens();
   if (state.ui.currentTab === 'dashboard') renderKPIs();
   if (state.ui.currentTab === 'config')    initConfig();
+
+  // 👉 ADICIONE ESTA LINHA:
+  carregarOrdensDoBanco();
 });
 
 /* ==========================================================================
@@ -1242,7 +1304,6 @@ function modalShow(sel, show){
   el.hidden = !show;
   el.setAttribute('aria-hidden', show ? 'false' : 'true');
 }
-
 
 /* ==========================================================================
    DASHBOARD (KPIs) — função simples usada na aba Dashboard
