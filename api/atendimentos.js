@@ -12,9 +12,6 @@ export default async function handler(req, res) {
         id, cliente_id, titulo, modulo = null, motivo = null,
         data = null, solicitante = null, col = 'aberto'
       } = body || {};
-      if (!id || !cliente_id || !titulo) {
-        return res.status(400).json({ ok:false, error:'id, cliente_id e titulo são obrigatórios' });
-      }
       // usamos a coluna "status" do banco para guardar a coluna do kanban
       await sql`
         INSERT INTO atendimentos (id, cliente_id, titulo, modulo, motivo, data, solicitante, status)

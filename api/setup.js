@@ -1,10 +1,11 @@
-// api/setup.js — cria tabelas no PostgreSQL (Neon)
+// api/setup.js
 import { neon } from '@neondatabase/serverless';
 
 export default async function handler(req, res) {
   try {
     const sql = neon(process.env.DATABASE_URL);
 
+    // Clientes
     await sql`CREATE TABLE IF NOT EXISTS clientes(
       id          text PRIMARY KEY,
       codigo      text UNIQUE,
@@ -13,6 +14,7 @@ export default async function handler(req, res) {
       responsavel text
     )`;
 
+    // Atendimentos
     await sql`CREATE TABLE IF NOT EXISTS atendimentos(
       id           text PRIMARY KEY,
       cliente_id   text NOT NULL REFERENCES clientes(id),
@@ -24,6 +26,7 @@ export default async function handler(req, res) {
       status       text NOT NULL DEFAULT 'aberto'
     )`;
 
+    // Ordens
     await sql`CREATE TABLE IF NOT EXISTS ordens(
       id         text PRIMARY KEY,
       numero     text NOT NULL,
