@@ -63,6 +63,13 @@ async function apiGet(path){
   return j;
 }
 
+async function apiDelete(path){
+  const r = await fetch(path, { method: 'DELETE' });
+  const j = await r.json().catch(()=> ({}));
+  if (!r.ok) throw new Error(j.error || `DELETE ${path} falhou`);
+  return j;
+}
+
 /** Seletores rápidos */
 const $  = (sel, root=document) => root.querySelector(sel);
 const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
@@ -1077,10 +1084,29 @@ function setOrdStatus(id, st){
   renderOrdens();
 }
 
-function delOrdem(id){
-  state.ordens = state.ordens.filter(o=>o.id!==id);
+async function delOrdem(id){
+  // pega a ordem para possível rollback
+  const bak = state.ordens.find(o => o.id === id);
+  if (!bak) return;
+
+  // Otimista: remove da UI já
+  state.ordens = state.ordens.filter(o => o.id !== id);
   persist();
   renderOrdens();
+
+  try{
+    await apiDelete(`/api/ordens?id=${encodeURIComponent(id)}`);
+    // (opcional) sincroniza do banco para garantir
+    await carregarOrdensDoBanco();
+  }catch(err){
+    console.error('[DB] Erro ao excluir ordem:', err);
+    alert('Não foi possível excluir no banco. Tente novamente.');
+
+    // Rollback na UI
+    state.ordens.push(bak);
+    persist();
+    renderOrdens();
+  }
 }
 
 function editOrdem(id){
