@@ -63,6 +63,19 @@ async function carregarAtendimentosDoBanco(){
   }
 }
 
+// helpers (você já tem apiGet/apiPost/apiDelete)
+async function carregarClientesDoBanco(){
+  const cli = await apiGet('/api/clientes');
+  state.clientes = cli || [];
+  persist(); renderClientes();
+}
+async function salvarClienteNoBanco(c){
+  return apiPost('/api/clientes', c);
+}
+async function excluirClienteNoBanco(id){
+  return apiDelete(`/api/clientes?id=${encodeURIComponent(id)}`);
+}
+
 async function salvarAtendimentoNoBanco(t){
   // t: { id, clienteId, titulo, modulo, motivo, data, solicitante, col }
   return apiPost('/api/atendimentos', {
@@ -605,31 +618,94 @@ function editCliente(id){
   $('#c_resp').value   = c.responsavel || '';
 }
 
-function delCliente(id){
+async function delCliente(id){
+  const bak = state.clientes.find(c=>c.id===id);
+  if (!bak) return;
+
+  // Otimista: já remove da UI
   state.clientes = state.clientes.filter(c=>c.id!==id);
   persist();
   renderClientes();
+
+  try{
+    await apiDelete(`/api/clientes?id=${encodeURIComponent(id)}`);
+    // ok, excluiu no banco
+  }catch(e){
+    console.error('[DB] Erro ao excluir cliente:', e);
+    alert('Não foi possível excluir o cliente no banco.');
+
+    // rollback (volta cliente apagado se falhar no servidor)
+    state.clientes.push(bak);
+    persist();
+    renderClientes();
+  }
 }
 
 function initClientesForm(){
   on($('#c_add'), 'click', ()=>{
-    const nome = $('#c_nome').value.trim();
-    const codigo = $('#c_codigo').value.trim();
-    const tel = $('#c_tel').value.trim();
-    const resp = $('#c_resp').value.trim();
-    if (!nome) { alert('Informe o nome.'); return; }
+    const nome  = $('#c_nome').value.trim();
+    const codigo= $('#c_codigo').value.trim();
+    const tel   = $('#c_tel').value.trim();
+    const resp  = $('#c_resp').value.trim();
 
-    const exists = state.clientes.find(c=> c.codigo===codigo && codigo);
-    if (exists){
-      Object.assign(exists, {nome, telefone:tel, responsavel:resp});
+    if (!nome){ alert('Informe o nome.'); return; }
+
+    // Se já existir cliente com o mesmo código, atualiza (edição simples)
+    let alvo = state.clientes.find(c => c.codigo === codigo && codigo);
+
+    if (alvo){
+      // edição
+      const bak = {...alvo}; // se quiser rollback
+      Object.assign(alvo, { nome, telefone: tel, responsavel: resp });
+
+      persist();
+      renderClientes();
+
+      salvarClienteNoBanco({
+        id: alvo.id,
+        codigo: alvo.codigo || '',
+        nome: alvo.nome,
+        telefone: alvo.telefone || '',
+        responsavel: alvo.responsavel || ''
+      }).catch(e=>{
+        console.error('[DB] salvar cliente (edit):', e);
+        alert('Não foi possível salvar no banco.');
+        // rollback opcional:
+        Object.assign(alvo, bak);
+        persist(); renderClientes();
+      });
+
     } else {
-      state.clientes.push({ id:uid('cli'), nome, codigo, telefone:tel, responsavel:resp });
+      // criação
+      const novo = { id: uid('cli'), nome, codigo, telefone: tel, responsavel: resp };
+
+      state.clientes.push(novo);
+      persist();
+      renderClientes();
+
+      salvarClienteNoBanco({
+        id: novo.id,
+        codigo: novo.codigo || '',
+        nome: novo.nome,
+        telefone: novo.telefone || '',
+        responsavel: novo.responsavel || ''
+      }).catch(e=>{
+        console.error('[DB] salvar cliente (novo):', e);
+        alert('Não foi possível salvar no banco.');
+        // rollback opcional:
+        state.clientes = state.clientes.filter(c => c.id !== novo.id);
+        persist(); renderClientes();
+      });
     }
-    persist();
-    renderClientes();
+
+    // limpa campos
     $('#c_nome').value = $('#c_codigo').value = $('#c_tel').value = $('#c_resp').value = '';
   });
 }
+
+/* ==========================================================================
+   6) ATENDIMENTO (KANBAN + MODAIS)
+   ========================================================================== */
 
 // === Perfil atual centralizado ===
 function getCurrentProfile() {
@@ -641,10 +717,6 @@ function getCurrentProfile() {
     foto: p.foto || ''
   };
 }
-
-/* ==========================================================================
-   6) ATENDIMENTO (KANBAN + MODAIS)
-   ========================================================================== */
 
 const COLS = ['aberto','atendimento','aguardando','programacao','concluido'];
 
@@ -1403,7 +1475,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 👉 ADICIONE ESTA LINHA:
   carregarOrdensDoBanco();
-  carregarAtendimentosDoBanco();
+carregarAtendimentosDoBanco();
+carregarClientesDoBanco();   // <- adicione
 });
 
 /* ==========================================================================
