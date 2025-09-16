@@ -1109,6 +1109,17 @@ async function delOrdem(id){
   }
 }
 
+async function apiPatch(path, data){
+  const r = await fetch(path, {
+    method: 'PATCH',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(data)
+  });
+  const j = await r.json().catch(()=> ({}));
+  if (!r.ok) throw new Error(j.error || `PATCH ${path} falhou`);
+  return j;
+}
+
 function editOrdem(id){
   const o = state.ordens.find(x=>x.id===id);
   if (!o) return;
@@ -1319,6 +1330,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 👉 ADICIONE ESTA LINHA:
   carregarOrdensDoBanco();
+  carregarAtendimentosDoBanco();
 });
 
 /* ==========================================================================
