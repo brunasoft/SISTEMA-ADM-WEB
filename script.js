@@ -992,25 +992,19 @@ function renderOrdens(){
   }
 
   state.ordens.forEach(o=>{
-    const stClass = ({
-      'Aberto':'open',
-      'Em atendimento':'active',
-      'Aguardando':'waiting',
-      'Programação':'prog',
-      'Concluído':'done',
-      'Postado':'posted'
-    })[o.status] || 'open';
+    // Força status fixo = "Lançado"
+    o.status = 'Lançado';
+    const stClass = 'launched'; // classe CSS azul
 
     const previstoTxt = o.previsto ? brDate(o.previsto) : '—';
     const tr = h('tr', {'data-id':o.id}, [
       h('td',{}, o.numero || '—'),
       h('td',{}, o.titulo || '—'),
-      h('td',{}, h('span',{class:`pill ${stClass}`}, o.status||'—')),
+      h('td',{}, h('span',{class:`pill ${stClass}`}, o.status)),
       h('td',{}, previstoTxt + (isAtrasada(o.previsto) ? ' ⚠' : '')),
       h('td',{}, h('div',{class:'row'},[
-  h('button',{class:'btn sm programacao', onClick:()=>setOrdStatus(o.id,'Programação')},'Programação'),
-  h('button',{class:'btn sm excluir',     onClick:()=>delOrdem(o.id)},'Excluir'),
-]))
+        h('button',{class:'btn sm excluir', onClick:()=>delOrdem(o.id)},'Excluir')
+      ]))
     ]);
     tb.appendChild(tr);
   });
