@@ -786,7 +786,8 @@ function initKanbanForm(){
 
     const me = getCurrentProfile();
 
-    state.tickets.push({
+    // Monta objeto do atendimento
+    const novo = {
       id: uid('t'),
       titulo,
       modulo,
@@ -799,10 +800,18 @@ function initKanbanForm(){
       nome:      cli.nome   || '',
       assigneeName: me.firstName,
       assigneeAvatar: me.foto
-    });
+    };
 
+    // Adiciona na memória/UI
+    state.tickets.push(novo);
     persist();
     renderKanban();
+
+    // 👉 Salva também no banco Neon
+    salvarAtendimentoNoBanco(novo).catch(err=>{
+      console.error('[DB] Erro ao salvar atendimento:', err);
+      alert('Não foi possível salvar no banco. Verifique conexão.');
+    });
 
     // Limpa campos (mantém cliente)
     $('#t_titulo').value = '';
