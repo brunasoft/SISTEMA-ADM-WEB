@@ -887,7 +887,6 @@ function labelCol(c){
 
 function initKanbanForm(){
   on($('#t_add'), 'click', ()=>{
-    const titulo = $('#t_titulo').value.trim();
     const modulo = $('#t_modulo').value;
     const motivo = $('#t_motivo').value;
     const data   = $('#t_data').value || ymd(new Date());
@@ -900,11 +899,7 @@ function initKanbanForm(){
       alert('Selecione um cliente.');
       return;
     }
-    if (!titulo){
-      alert('Informe o título.');
-      return;
-    }
-
+    
     const me = getCurrentProfile();
 
     // Monta objeto do atendimento
