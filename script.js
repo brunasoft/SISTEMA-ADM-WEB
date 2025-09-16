@@ -784,16 +784,20 @@ function createOrderFromTicket(ticketId){
   const numero   = String((state.ordens[state.ordens.length-1]?.numero || 0) + 1).padStart(3,'0');
   const previsto = ymd(new Date()); // hoje
 
- state.ordens.push({
-  id: uid('o'),
-  numero,
-  titulo: t.titulo || `${t.codigo || ''} ${t.nome || ''}`.trim() || 'Atendimento',
-  status: 'Lançado',
-  previsto
-});
+  state.ordens.push({
+    id: uid('o'),
+    numero,
+    titulo: t.titulo || `${t.codigo || ''} ${t.nome || ''}`.trim() || 'Atendimento',
+    status: 'Lançado',
+    previsto
+  });
+
+  // 🔴 Remover ticket da lista (sai de "Concluídos")
+  state.tickets = state.tickets.filter(x => x.id !== ticketId);
 
   persist();
-  renderOrdens();
+  renderKanban();   // atualiza o quadro para sumir do Concluído
+  renderOrdens();   // atualiza tabela de Ordens
   setTab('ordens'); // vai direto para Ordens
 }
 
