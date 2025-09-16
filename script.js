@@ -39,6 +39,44 @@
   }
 }
 
+// ==== Persistência de ATENDIMENTOS (Neon via /api/atendimentos) ====
+async function carregarAtendimentosDoBanco(){
+  try{
+    const list = await apiGet('/api/atendimentos');
+    // mapeia p/ state.tickets
+    state.tickets = (list || []).map(a => ({
+      id: a.id,
+      titulo: a.titulo,
+      modulo: a.modulo || '',
+      motivo: a.motivo || '',
+      data: a.data || '',
+      solicitante: a.solicitante || '',
+      col: a.col || 'aberto',     // usamos a coluna "status" do banco
+      clienteId: a.cliente_id,
+      codigo: a.codigo || '',
+      nome: a.nome || ''
+    }));
+    persist();
+    renderKanban();
+  }catch(e){
+    console.warn('[DB] Falha ao carregar atendimentos:', e.message);
+  }
+}
+
+async function salvarAtendimentoNoBanco(t){
+  // t: { id, clienteId, titulo, modulo, motivo, data, solicitante, col }
+  return apiPost('/api/atendimentos', {
+    id: t.id,
+    cliente_id: t.clienteId,
+    titulo: t.titulo,
+    modulo: t.modulo,
+    motivo: t.motivo,
+    data: t.data || null,
+    solicitante: t.solicitante || null,
+    col: t.col
+  });
+}
+
    // ==== Persistência em Neon (via /api/ordens) ====
 async function salvarOrdemNoBanco({ id, numero, titulo, status='Lançado', previsto=null }){
   return apiPost('/api/ordens', { id, numero, titulo, status, previsto });
@@ -67,6 +105,17 @@ async function apiDelete(path){
   const r = await fetch(path, { method: 'DELETE' });
   const j = await r.json().catch(()=> ({}));
   if (!r.ok) throw new Error(j.error || `DELETE ${path} falhou`);
+  return j;
+}
+
+async function apiPatch(path, data){
+  const r = await fetch(path, {
+    method: 'PATCH',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(data)
+  });
+  const j = await r.json().catch(()=> ({}));
+  if (!r.ok) throw new Error(j.error || `PATCH ${path} falhou`);
   return j;
 }
 
@@ -821,18 +870,28 @@ function initKanbanForm(){
   });
 }
 
-function moveTicket(id, col){
-  const t = state.tickets.find(x=>x.id===id);
+async function moveTicket(id, novaCol){
+  const t = state.tickets.find(x => x.id === id);
   if (!t) return;
 
-  // carimbar quem mexeu
-  const me = getCurrentProfile();
-  t.assigneeName = me.firstName;
-  t.assigneeAvatar = me.foto;
+  const colAnterior = t.col;
 
-  t.col = col;
+  // Otimista na UI
+  t.col = novaCol;
   persist();
   renderKanban();
+
+  try{
+    await apiPatch('/api/atendimentos', { id, col: novaCol });
+    // ok
+  }catch(e){
+    console.error('[DB] Falha ao mover atendimento no banco:', e);
+    // rollback
+    t.col = colAnterior;
+    persist();
+    renderKanban();
+    alert('Não foi possível atualizar o status no banco.');
+  }
 }
 
 async function createOrderFromTicket(ticketId){
@@ -876,10 +935,26 @@ async function createOrderFromTicket(ticketId){
   }
 }
 
-function delTicket(id){
-  state.tickets = state.tickets.filter(t=>t.id!==id);
+async function delTicket(id){
+  const bak = state.tickets.find(x => x.id === id);
+  if (!bak) return;
+
+  // Otimista
+  state.tickets = state.tickets.filter(x => x.id !== id);
   persist();
   renderKanban();
+
+  try{
+    await apiDelete(`/api/atendimentos?id=${encodeURIComponent(id)}`);
+    // ok
+  }catch(e){
+    console.error('[DB] Erro ao excluir atendimento:', e);
+    // rollback
+    state.tickets.push(bak);
+    persist();
+    renderKanban();
+    alert('Não foi possível excluir no banco.');
+  }
 }
 
 /* ---- MODAL: Editar atendimento (e_*) ---- */
@@ -1116,17 +1191,6 @@ async function delOrdem(id){
     persist();
     renderOrdens();
   }
-}
-
-async function apiPatch(path, data){
-  const r = await fetch(path, {
-    method: 'PATCH',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify(data)
-  });
-  const j = await r.json().catch(()=> ({}));
-  if (!r.ok) throw new Error(j.error || `PATCH ${path} falhou`);
-  return j;
 }
 
 function editOrdem(id){
