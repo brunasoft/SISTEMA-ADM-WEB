@@ -1,4 +1,4 @@
-// api/ordens.js — GET lista ordens; POST cria ordem
+// api/ordens.js — GET lista, POST cria, DELETE apaga (Neon/Postgres)
 import { neon } from '@neondatabase/serverless';
 
 export default async function handler(req, res) {
@@ -7,14 +7,7 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'POST') {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-
-      const {
-        id,
-        numero,
-        titulo,
-        status = 'Lançado',
-        previsto = null
-      } = body || {};
+      const { id, numero, titulo, status = 'Lançado', previsto = null } = body || {};
 
       if (!id || !numero || !titulo) {
         return res.status(400).json({ ok: false, error: 'id, numero e titulo são obrigatórios' });
@@ -24,11 +17,20 @@ export default async function handler(req, res) {
         INSERT INTO ordens (id, numero, titulo, status, previsto)
         VALUES (${id}, ${numero}, ${titulo}, ${status}, ${previsto})
       `;
-
       return res.status(201).json({ ok: true });
     }
 
-    // GET — lista em ordem do mais recente
+    if (req.method === 'DELETE') {
+      // Vercel Functions expõem querystring em req.query
+      const { id } = req.query || {};
+      if (!id) return res.status(400).json({ ok: false, error: 'id é obrigatório' });
+
+      const result = await sql`DELETE FROM ordens WHERE id = ${id}`;
+      // result.rowCount não está disponível no driver serverless; se não lançar erro, consideramos ok
+      return res.status(200).json({ ok: true });
+    }
+
+    // GET — lista por mais recentes
     const rows = await sql`SELECT * FROM ordens ORDER BY created_at DESC`;
     return res.status(200).json(rows);
 
