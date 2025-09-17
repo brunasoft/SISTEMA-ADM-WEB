@@ -1425,8 +1425,7 @@ function openProfileModal(){
   $('#pf_tel_setor').value = state.profile.telSetor    || '';
   $('#pf_email_corp').value= state.profile.emailCorp   || '';
   $('#pf_ramal').value     = state.profile.ramal       || '';
-
-  const prev = $('#pf_preview');
+ const prev = $('#pf_preview');
   if (prev) prev.src = state.profile.foto || $('#profileAvatar')?.src || '';
 
   modalShow('#profileModal', true);
