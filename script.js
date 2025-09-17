@@ -1132,6 +1132,10 @@ function openTicketPopover(ticketId, anchorEl){
   if (pTxt) pTxt.value = t.problem  || '';
   if (sTxt) sTxt.value = t.solution || '';
 
+  // depois de montar a telinha e obter a ref do ticket "t" em edição:
+const inpSolic = root.querySelector('#po_solicitante');
+if (inpSolic) inpSolic.value = t.solicitante || '';
+
   // Auto-save enquanto digita
   if (pTxt) pTxt.addEventListener('input', ()=>{ t.problem  = pTxt.value; persist(); });
   if (sTxt) sTxt.addEventListener('input', ()=>{ t.solution = sTxt.value; persist(); });
@@ -1164,13 +1168,18 @@ function openTicketPopover(ticketId, anchorEl){
   rebind(btnDelete, ()=>{ delTicket(ticketId); closeTicketPopover(); });
 
   // Salvar (sempre disponível): persiste Problema/Solução e fecha
-  rebind(btnSave, ()=>{
+  rebind(btnSave, ()=>{ 
     if (pTxt) t.problem  = (pTxt.value || '').trim();
     if (sTxt) t.solution = (sTxt.value || '').trim();
+
+    // 👇 NOVO: salvar solicitante
+    const inpSolic = pop.querySelector('#po_solicitante');
+    if (inpSolic) t.solicitante = (inpSolic.value || '').trim();
+
     persist();
     closeTicketPopover();
     renderKanban(); // reflete alterações no card
-  });
+});
 
   // Lançar (se existir): abre modal de ordem
   rebind(btnLaunch, ()=> {

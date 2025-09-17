@@ -284,7 +284,15 @@
     <div class="popover__content">
       <h4 style="margin:0 0 6px">Atendimento</h4>
 
-      <!-- Problema / Solução dentro da telinha -->
+      <!-- Campo de Solicitante (novo) -->
+      <div class="grid cols-1" style="gap:8px; margin:8px 0">
+        <div>
+          <label class="muted" for="po_solicitante">Solicitante</label>
+          <input id="po_solicitante" placeholder="Quem solicitou o atendimento?">
+        </div>
+      </div>
+
+      <!-- Problema / Solução dentro da telinha (já existia) -->
       <div class="grid cols-2" style="gap:8px">
         <div>
           <label class="muted" for="po_problem">Problema</label>
@@ -300,13 +308,7 @@
         <button class="btn success editar" data-act="edit"   type="button">Editar</button>
         <button class="btn danger  excluir" data-act="delete" type="button">Excluir</button>
         <button class="btn success"         data-act="save"   type="button">Salvar</button>
-
-        <!-- FIX: este botão só deve aparecer para tickets na coluna 'concluido'.
-             A marcação data-visible-for será respeitada no JS (próxima etapa). -->
-        <button class="btn lancar pink"
-                data-act="launch"
-                data-visible-for="concluido"
-                type="button">Lançar</button>
+        <button class="btn lancar pink" data-act="launch" data-visible-for="concluido" type="button">Lançar</button>
       </div>
     </div>
   </div>
