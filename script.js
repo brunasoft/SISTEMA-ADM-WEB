@@ -887,6 +887,10 @@ function labelCol(c){
 
 function initKanbanForm(){
   on($('#t_add'), 'click', ()=>{
+    // NÃO assume que #t_titulo existe
+    const tituloEl = $('#t_titulo');
+    const tituloDoInput = tituloEl ? tituloEl.value.trim() : '';
+
     const modulo = $('#t_modulo').value;
     const motivo = $('#t_motivo').value;
     const data   = $('#t_data').value || ymd(new Date());
@@ -899,10 +903,12 @@ function initKanbanForm(){
       alert('Selecione um cliente.');
       return;
     }
-    
+
     const me = getCurrentProfile();
 
-    // Monta objeto do atendimento
+    // Se não existir título, usa "CODIGO — NOME" como fallback
+    const titulo = tituloDoInput || `${cli.codigo || ''} ${cli.nome || ''}`.trim() || 'Atendimento';
+
     const novo = {
       id: uid('t'),
       titulo,
@@ -918,19 +924,19 @@ function initKanbanForm(){
       assigneeAvatar: me.foto
     };
 
-    // Adiciona na memória/UI
+    // adiciona em memória/UI
     state.tickets.push(novo);
     persist();
     renderKanban();
 
-    // 👉 Salva também no banco Neon
+    // salva no banco (se sua API estiver ligada)
     salvarAtendimentoNoBanco(novo).catch(err=>{
       console.error('[DB] Erro ao salvar atendimento:', err);
       alert('Não foi possível salvar no banco. Verifique conexão.');
     });
 
     // Limpa campos (mantém cliente)
-    $('#t_titulo').value = '';
+    if (tituloEl) tituloEl.value = '';
     $('#t_modulo').value = '';
     $('#t_motivo').value = '';
     $('#t_data').value   = '';
@@ -965,13 +971,14 @@ async function createOrderFromTicket(ticketId){
   const t = state.tickets.find(x => x.id === ticketId);
   if (!t) return;
 
-  // calcula o próximo número com base no MAIOR já existente
+  // próximo número baseado no maior já existente
   const maxNumero = Math.max(0, ...state.ordens.map(o => parseInt(o.numero, 10) || 0));
   const prox = String(maxNumero + 1).padStart(3,'0');
 
   const payload = {
     id: 'o_' + Math.random().toString(36).slice(2,8),
     numero: prox,
+    // fallback para quando não houver título no ticket
     titulo: t.titulo || `${t.codigo || ''} ${t.nome || ''}`.trim() || 'Atendimento',
     status: 'Lançado',
     previsto: ymd(new Date())
@@ -986,13 +993,10 @@ async function createOrderFromTicket(ticketId){
   setTab('ordens');
 
   try {
-    // Persiste no Neon
     await salvarOrdemNoBanco(payload);
-    // Sincroniza da fonte de verdade (opcional, mas recomendado)
     await carregarOrdensDoBanco();
   } catch (err) {
     console.error('[DB] Erro ao salvar ordem:', err);
-    // rollback
     state.ordens = state.ordens.filter(o => o.id !== payload.id);
     state.tickets.push({...t, col:'concluido'});
     persist();
