@@ -245,7 +245,7 @@ const defaults = {
   tickets: [],
   ordens: [],
   calendar: { events: [] }, // events: [{id, date:'YYYY-MM-DD', time:'HH:mm', title, recur?, countType?}]
-  profile: { foto: null, nome: '', nascimento: '', setor: '' },
+  profile: { foto: null, nome: '', nascimento: '', setor: '', telSetor: '', emailCorp: '', ramal: ''},
 };
 
 const saved = DB.load();
@@ -1386,45 +1386,97 @@ function initConfig(){
   });
 }
 
-/* ==========================================================================
-   11) PERFIL (avatar + dados)
+/* ========================================================================== 
+   11) PERFIL (avatar, nome, nascimento, setor, contatos)
    ========================================================================== */
+
+/** Abre/fecha qualquer modal por seletor */
+function modalShow(sel, show=true){
+  const m = document.querySelector(sel);
+  if (!m) return;
+  m.hidden = !show;
+  m.setAttribute('aria-hidden', String(!show));
+}
+
+/** Preenche o header (avatar + primeiro nome + setor) com base no state.profile */
+function applyHeaderProfile() {
+  const me = state.profile || {};
+  const av = document.getElementById('profileAvatar');
+  const nm = document.getElementById('profileName');
+  const sc = document.getElementById('profileSector');
+
+  if (av) {
+    if (me.foto) {
+      av.src = me.foto;
+    } else {
+      const svg = encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="100%" height="100%" fill="#e5e7eb"/><circle cx="32" cy="24" r="12" fill="#94a3b8"/><rect x="12" y="40" width="40" height="14" rx="7" fill="#cbd5e1"/></svg>');
+      av.src = `data:image/svg+xml;charset=UTF-8,${svg}`;
+    }
+  }
+  if (nm) nm.textContent = (me.nome || '').split(' ')[0] || 'Usuário';
+  if (sc) sc.textContent = me.setor || 'Setor';
+}
+
+/** Abre o modal e carrega os dados do perfil nos inputs */
 function openProfileModal(){
-  $('#pf_nome').value = state.profile.nome || '';
-  $('#pf_nasc').value = state.profile.nascimento || '';
-  $('#pf_setor').value = state.profile.setor || '';
+  $('#pf_nome').value      = state.profile.nome        || '';
+  $('#pf_nasc').value      = state.profile.nascimento  || '';
+  $('#pf_setor').value     = state.profile.setor       || '';
+  $('#pf_tel_setor').value = state.profile.telSetor    || '';
+  $('#pf_email_corp').value= state.profile.emailCorp   || '';
+  $('#pf_ramal').value     = state.profile.ramal       || '';
+
   const prev = $('#pf_preview');
-  prev.src = state.profile.foto || $('#profileAvatar').src;
+  if (prev) prev.src = state.profile.foto || $('#profileAvatar')?.src || '';
+
   modalShow('#profileModal', true);
 }
 
+/** Inicializa eventos do modal de perfil */
 function initProfileModal(){
+  // abre pelo avatar no header
   on($('#btnProfile'), 'click', openProfileModal);
 
-  // Preview da foto ao escolher arquivo
-  on($('#pf_foto'), 'change', (e)=>{
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => { $('#pf_preview').src = reader.result; };
-    reader.readAsDataURL(file);
+  // fechar pelo X e pelo backdrop (ambos têm data-close)
+  $$('#profileModal [data-close]').forEach(el => {
+    on(el, 'click', () => modalShow('#profileModal', false));
   });
 
-  on($('#pf_cancel'), 'click', ()=> modalShow('#profileModal', false));
+  // upload de foto -> converte para Base64, salva no state e atualiza prévia/header
+  const file = $('#pf_foto');
+  if (file) {
+    on(file, 'change', () => {
+      const f = file.files && file.files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        state.profile.foto = String(e.target.result || '');
+        persist();
+        const prev = $('#pf_preview');
+        if (prev) prev.src = state.profile.foto;
+        applyHeaderProfile();
+      };
+      reader.readAsDataURL(f);
+    });
+  }
 
-  on($('#pf_save'), 'click', ()=>{
-    state.profile.nome        = $('#pf_nome').value.trim();
-    state.profile.nascimento  = $('#pf_nasc').value;
-    state.profile.setor       = $('#pf_setor').value.trim();
-    const previewSrc          = $('#pf_preview').src;
-    state.profile.foto        = previewSrc || state.profile.foto;
+  // SALVAR: lê todos os inputs, grava em state.profile, persiste e atualiza header
+  const btnSave = $('#pf_save');
+  on(btnSave, 'click', () => {
+    state.profile.nome       = ($('#pf_nome').value || '').trim();
+    state.profile.nascimento = ($('#pf_nasc').value || '').trim();
+    state.profile.setor      = ($('#pf_setor').value || '').trim();
 
-    persist();
-    applyHeaderProfile();
+    // >>> campos novos (antes não eram gravados, por isso “sumiam”)
+    state.profile.telSetor   = ($('#pf_tel_setor').value || '').trim();
+    state.profile.emailCorp  = ($('#pf_email_corp').value || '').trim();
+    state.profile.ramal      = ($('#pf_ramal').value || '').trim();
+
+    persist();               // grava no localStorage
+    applyHeaderProfile();    // reflete no header (foto + primeiro nome + setor)
     modalShow('#profileModal', false);
   });
 }
-
 
 /* ==========================================================================
    12) BOOTSTRAP

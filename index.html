@@ -579,39 +579,65 @@
       </div>
     </div>
 
-    <!-- MODAL: Perfil do Usuário -->
-    <!-- Observação: inputs batem com o script (pf_foto, pf_nome, pf_nasc, pf_setor) -->
-    <div id="profileModal" class="modal" hidden aria-hidden="true" aria-labelledby="profileModalTitle" role="dialog">
-      <div class="modal__backdrop" data-close aria-label="Fechar"></div>
-      <div class="modal__card">
-        <div class="row" style="justify-content:space-between;align-items:center">
-          <h3 id="profileModalTitle">Perfil</h3>
-          <button class="btn ghost" data-close style="padding:4px 10px;font-size:14px" aria-label="Fechar">✖</button>
-        </div>
-        <p class="muted" style="margin-top:-6px">Adicione sua foto e dados básicos.</p>
+<!-- MODAL: Perfil do Usuário -->
+<div id="profileModal" class="modal" hidden aria-hidden="true" aria-labelledby="profileModalTitle" role="dialog">
+  <div class="modal__backdrop" data-close aria-label="Fechar"></div>
+  <div class="modal__card">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h3 id="profileModalTitle">Perfil</h3>
+      <button class="btn ghost" data-close style="padding:4px 10px;font-size:14px" aria-label="Fechar">✖</button>
+    </div>
+    <p class="muted" style="margin-top:-6px">Adicione sua foto e dados básicos.</p>
 
-        <div class="grid cols-2" style="margin-top:10px; gap:12px">
-          <div>
-            <label for="pf_foto">Foto de perfil</label>
-            <input id="pf_foto" type="file" accept="image/*">
-            <div class="row" style="margin-top:8px">
-              <img id="pf_preview" class="avatar lg" src="" alt="Pré-visualização da foto" />
-            </div>
-          </div>
-          <div class="grid cols-2" style="gap:10px">
-            <div style="grid-column:1 / -1">
-              <label for="pf_nome">Nome completo</label>
-              <input id="pf_nome" placeholder="Digite seu nome completo">
-            </div>
-            <div>
-              <label for="pf_nasc">Data de nascimento</label>
-              <input id="pf_nasc" type="date">
-            </div>
-            <div>
-              <label for="pf_setor">Setor</label>
-              <input id="pf_setor" placeholder="Ex.: Suporte, Fiscal, Comercial">
-            </div>
-          </div>
+    <!-- === DADOS BÁSICOS (2 colunas) ================================== -->
+    <div class="form-grid-2">
+      <div>
+        <label for="pf_foto">Foto de perfil</label>
+        <input id="pf_foto" type="file" accept="image/*">
+        <img id="pf_preview" class="avatar lg" src="" alt="Pré-visualização da foto" style="margin-top:8px">
+      </div>
+
+      <div>
+        <label for="pf_nome">Nome completo</label>
+        <input id="pf_nome" placeholder="Digite seu nome completo">
+      </div>
+
+      <div>
+        <label for="pf_nasc">Data de nascimento</label>
+        <input id="pf_nasc" type="date">
+      </div>
+
+      <div>
+        <label for="pf_setor">Setor</label>
+        <input id="pf_setor" placeholder="Ex.: Suporte, Fiscal, Comercial">
+      </div>
+    </div>
+
+    <hr class="sep">
+
+    <!-- === CONTATOS DO SETOR (3 colunas) =============================== -->
+    <div class="block-title">Contatos do setor</div>
+    <div class="contact-grid-3">
+      <div>
+        <label for="pf_tel_setor">Telefone do setor</label>
+        <input id="pf_tel_setor" placeholder="(00) 0000-0000">
+      </div>
+      <div>
+        <label for="pf_email_corp">E-mail corporativo</label>
+        <input id="pf_email_corp" type="email" placeholder="voce@empresa.com.br">
+      </div>
+      <div>
+        <label for="pf_ramal">Ramal</label>
+        <input id="pf_ramal" placeholder="000">
+      </div>
+    </div>
+
+    <!-- Ações -->
+    <div class="modal__actions">
+      <button class="btn success" id="pf_save">Salvar</button>
+    </div>
+  </div>
+</div>
         </div>
         </div>
       </div>
