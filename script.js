@@ -137,7 +137,15 @@ const $  = (sel, root=document) => root.querySelector(sel);
 const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
 /** Listener sucinto */
-const on = (el, ev, fn, opts) => el && el.addEventListener(ev, fn, opts);
+const on = (el, ev, fn, opts) => {
+  if (!el) return;
+  // aceita único elemento, NodeList ou array
+  if (el instanceof NodeList || Array.isArray(el)) {
+    el.forEach(e => e && e.addEventListener(ev, fn, opts));
+  } else {
+    el.addEventListener(ev, fn, opts);
+  }
+};
 
 // Trata string ISO (YYYY-MM-DD) como meia-noite LOCAL para não voltar 1 dia
 const fmt = (d) => {
@@ -257,7 +265,7 @@ const state = {
   tickets:  saved.tickets  || defaults.tickets,
   ordens:   saved.ordens   || defaults.ordens,
   calendar: { events: (saved.calendar && saved.calendar.events) || defaults.calendar.events },
-  profile:  { ...defaults.profile, ...(saved.profile||{}) },
+  profile: { foto: null, nome: '', nascimento: '', setor: '', telSetor:'', emailCorp:'', ramal:'' },
 };
 
 function persist(){ DB.save(state); }
@@ -1422,9 +1430,9 @@ function openProfileModal(){
   $('#pf_nome').value      = state.profile.nome        || '';
   $('#pf_nasc').value      = state.profile.nascimento  || '';
   $('#pf_setor').value     = state.profile.setor       || '';
-  $('#pf_tel_setor').value = state.profile.telSetor    || '';
-  $('#pf_email_corp').value= state.profile.emailCorp   || '';
-  $('#pf_ramal').value     = state.profile.ramal       || '';
+  $('#pf_tel_setor').value  = state.profile.telSetor   || '';
+  $('#pf_email_corp').value = state.profile.emailCorp  || '';
+  $('#pf_ramal').value      = state.profile.ramal      || '';
  const prev = $('#pf_preview');
   if (prev) prev.src = state.profile.foto || $('#profileAvatar')?.src || '';
 
@@ -1462,9 +1470,9 @@ function initProfileModal(){
   // SALVAR: lê todos os inputs, grava em state.profile, persiste e atualiza header
   const btnSave = $('#pf_save');
   on(btnSave, 'click', () => {
-    state.profile.nome       = ($('#pf_nome').value || '').trim();
-    state.profile.nascimento = ($('#pf_nasc').value || '').trim();
-    state.profile.setor      = ($('#pf_setor').value || '').trim();
+    state.profile.telSetor  = ($('#pf_tel_setor').value || '').trim();
+    state.profile.emailCorp = ($('#pf_email_corp').value || '').trim();
+    state.profile.ramal     = ($('#pf_ramal').value || '').trim();
 
     // >>> campos novos (antes não eram gravados, por isso “sumiam”)
     state.profile.telSetor   = ($('#pf_tel_setor').value || '').trim();
